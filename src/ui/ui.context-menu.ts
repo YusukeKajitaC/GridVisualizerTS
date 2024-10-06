@@ -1,11 +1,15 @@
 import { DomBase } from "./ui.dom-base";
 
-export class ContextMenu extends DomBase {
+export class ContextMenu extends DomBase<HTMLUListElement> {
+    getElement(){
+        return this.contextMenu;
+    }
     contextMenu?:HTMLUListElement;
     constructor(div: HTMLDivElement) {
         super(div);
     }
     init(): void {
+        console.log("read init of context")
         this.contextMenu = document.createElement("ul");
         this.contextMenu.id = "contextMenu";
         const contextMenuItem: HTMLLIElement = document.createElement("li");
@@ -27,9 +31,7 @@ export class ContextMenu extends DomBase {
         const submenuItem: HTMLLIElement = document.createElement("li");
         submenuItem.textContent = "中";
         submenu.appendChild(submenuItem);
-
         contextMenuItem.appendChild(submenu);
-        this.div.appendChild(this.contextMenu);
     }
 
     CSS(): string {
