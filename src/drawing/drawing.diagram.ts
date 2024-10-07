@@ -20,6 +20,7 @@ export class Diagram {
   shaderProgram: WebGLProgram;
   projectionMatrix: Mat4;
   modelViewMatrix: Mat4;
+  programInfo: ProgramInfo;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -50,6 +51,29 @@ export class Diagram {
     this.shaderProgram = this.initShaderProgram()!;
     this.modelViewMatrix = Mat4.create();
     this.projectionMatrix = Mat4.create();
+    this.programInfo = {
+      program: this.shaderProgram,
+      attribLocations: {
+        vertexPosition: this.gl.getAttribLocation(
+          this.shaderProgram,
+          "aVertexPosition"
+        ),
+        vertexColor: this.gl.getAttribLocation(
+          this.shaderProgram,
+          "aVertexColor"
+        ),
+      },
+      uniformLocations: {
+        projectionMatrix: this.gl.getUniformLocation(
+          this.shaderProgram,
+          "uProjectionMatrix"
+        ),
+        modelViewMatrix: this.gl.getUniformLocation(
+          this.shaderProgram,
+          "uModelViewMatrix"
+        ),
+      },
+    };
     this.init();
 
     this.draw();
@@ -127,9 +151,9 @@ export class Diagram {
     }
 
     // Set clear color to black, fully opaque
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
@@ -137,42 +161,19 @@ export class Diagram {
     // Collect all the info needed to use the shader program.
     // Look up which attribute our shader program is using
     // for aVertexPosition and look up uniform locations.
-    const programInfo: ProgramInfo = {
-      program: this.shaderProgram,
-      attribLocations: {
-        vertexPosition: this.gl.getAttribLocation(
-          this.shaderProgram,
-          "aVertexPosition"
-        ),
-        vertexColor: this.gl.getAttribLocation(
-          this.shaderProgram,
-          "aVertexColor"
-        ),
-      },
-      uniformLocations: {
-        projectionMatrix: this.gl.getUniformLocation(
-          this.shaderProgram,
-          "uProjectionMatrix"
-        ),
-        modelViewMatrix: this.gl.getUniformLocation(
-          this.shaderProgram,
-          "uModelViewMatrix"
-        ),
-      },
-    };
 
     // Here's where we call the routine that builds all the
     // objects we'll be drawing.
-    const buffers = this.initBuffers(this.gl);
+    const buffers = this.initBuffers();
 
     // Draw the scene
-    this.drawScene(this.gl, programInfo, buffers);
+    this.drawScene(buffers);
   }
 
-  initBuffers(gl: WebGL2RenderingContext) {
-    const positionBuffer = this.initPositionBuffer(gl)!;
-    const colorBuffer = this.initColorBuffer(gl)!;
-    const indexBuffer = this.initIndexBuffer(gl)!;
+  initBuffers() {
+    const positionBuffer = this.initPositionBuffer()!;
+    const colorBuffer = this.initColorBuffer()!;
+    const indexBuffer = this.initIndexBuffer()!;
 
     return {
       position: positionBuffer,
@@ -181,13 +182,13 @@ export class Diagram {
     };
   }
 
-  initPositionBuffer(gl: WebGL2RenderingContext) {
+  initPositionBuffer() {
     // Create a buffer for the square's positions.
-    const positionBuffer = gl.createBuffer();
+    const positionBuffer = this.gl.createBuffer();
 
     // Select the positionBuffer as the one to apply buffer
     // operations to from here out.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
 
     // Now create an array of positions for the square.
     // const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
@@ -195,31 +196,31 @@ export class Diagram {
       1.0,
       1.0,
       0.0,
-      
+
       -1.0,
       1.0,
       0.0,
-      
+
       -1.0,
       -1.0,
       0.0,
-      
+
       1.0,
       -1.0,
       0.0,
-      
+
       0.5 + 2,
       0.5,
       1.0,
-      
+
       -0.5 + 2,
       0.5,
       1.0,
-      
+
       -0.5 + 2,
       -0.5,
       1.0,
-      
+
       0.5 + 2,
       -0.5,
       1.0,
@@ -228,44 +229,40 @@ export class Diagram {
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
 
     return positionBuffer;
   }
 
-  initColorBuffer(gl: WebGL2RenderingContext) {
+  initColorBuffer() {
     // Create a buffer for the square's positions.
-    const colorBuffer = gl.createBuffer();
+    const colorBuffer = this.gl.createBuffer();
 
     // Select the positionBuffer as the one to apply buffer
     // operations to from here out.
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
 
     // Now create an array of positions for the square.
     // const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
     const colors = [
-        1.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 0.0, 1.0,
-        0.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0,
-        
-        1.0, 0.0, 1.0, 1.0,
-        1.0, 1.0, 0.0, 1.0,
-        0.0, 1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0, 1.0,
+      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      1.0,
+
+      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+      1.0,
     ];
 
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
 
     return colorBuffer;
   }
 
-  initIndexBuffer(gl: WebGL2RenderingContext) {
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  initIndexBuffer() {
+    const indexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     // This array defines each face as two triangles, using the
     // indices into the vertex array to specify each triangle's
@@ -275,28 +272,26 @@ export class Diagram {
 
     // Now send the element array to GL
 
-    gl.bufferData(
-      gl.ELEMENT_ARRAY_BUFFER,
+    this.gl.bufferData(
+      this.gl.ELEMENT_ARRAY_BUFFER,
       new Uint16Array(indices),
-      gl.STATIC_DRAW
+      this.gl.STATIC_DRAW
     );
 
     return indexBuffer;
   }
 
   drawScene(
-    gl: WebGL2RenderingContext,
-    programInfo: ProgramInfo,
     buffers: { position: WebGLBuffer; color: WebGLBuffer; indices: WebGLBuffer }
   ) {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-    gl.clearDepth(1.0); // Clear everything
-    gl.enable(gl.DEPTH_TEST); // Enable depth testing
-    gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+    this.gl.clearColor(1.0, 1.0, 1.0, 1.0); // Clear to black, fully opaque
+    this.gl.clearDepth(1.0); // Clear everything
+    this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
+    this.gl.depthFunc(this.gl.LEQUAL); // Near things obscure far things
 
     // Clear the canvas before we start drawing on it.
 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     // Create a perspective matrix, a special matrix that is
     // used to simulate the distortion of perspective in a camera.
@@ -306,7 +301,7 @@ export class Diagram {
     // and 100 units away from the camera.
 
     const fieldOfView = (45 * Math.PI) / 180; // in radians
-    const aspect = gl.canvas.width / gl.canvas.height;
+    const aspect = this.gl.canvas.width / this.gl.canvas.height;
     const zNear = 0.1;
     const zFar = 100.0;
 
@@ -328,29 +323,28 @@ export class Diagram {
     //取り出しかたの指定。
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    this.setPositionAttribute(gl, buffers, programInfo);
-    this.setColorAttribute(gl, buffers, programInfo);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    this.setPositionAttribute(buffers);
+    this.setColorAttribute(buffers);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
     // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
+    this.gl.useProgram(this.programInfo.program);
     // Set the shader uniforms
-    gl.uniformMatrix4fv(
-      programInfo.uniformLocations.projectionMatrix,
+    this.gl.uniformMatrix4fv(
+      this.programInfo.uniformLocations.projectionMatrix,
       false,
       this.projectionMatrix
     );
-    gl.uniformMatrix4fv(
-      programInfo.uniformLocations.modelViewMatrix,
+    this.gl.uniformMatrix4fv(
+      this.programInfo.uniformLocations.modelViewMatrix,
       false,
       this.modelViewMatrix
     );
 
     {
       const vertexCount = 16;
-      const type = gl.UNSIGNED_SHORT;
-      const offset = 0;
-      gl.drawElements(gl.LINES, vertexCount, type, offset);
+      const type = this.gl.UNSIGNED_SHORT;
+      const offset = 0; //これはバッファのバイトサイズ
+      this.gl.drawElements(this.gl.LINES, vertexCount, type, offset);
     }
   }
 
@@ -358,48 +352,44 @@ export class Diagram {
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
   setPositionAttribute(
-    gl: WebGL2RenderingContext,
     buffers: { position: WebGLBuffer },
-    programInfo: ProgramInfo
   ) {
     const numComponents = 3; // pull out 2 values per iteration // 2dであること
-    const type = gl.FLOAT; // the data in the buffer is 32bit floats
+    const type = this.gl.FLOAT; // the data in the buffer is 32bit floats
     const normalize = false; // don't normalize
     const stride = 0; // how many bytes to get from one set of values to the next
     // 0 = use type and numComponents above
     const offset = 0; // how many bytes inside the buffer to start from
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexPosition,
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffers.position);
+    this.gl.vertexAttribPointer(
+      this.programInfo.attribLocations.vertexPosition,
       numComponents,
       type,
       normalize,
       stride,
       offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    this.gl.enableVertexAttribArray(this.programInfo.attribLocations.vertexPosition);
   }
   // Tell WebGL how to pull out the colors from the color buffer
   // into the vertexColor attribute.
   setColorAttribute(
-    gl: WebGL2RenderingContext,
-    buffers: { position: WebGLBuffer; color: WebGLBuffer },
-    programInfo: ProgramInfo
+    buffers: { color: WebGLBuffer },
   ) {
     const numComponents = 4;
-    const type = gl.FLOAT;
+    const type = this.gl.FLOAT;
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffers.color);
+    this.gl.vertexAttribPointer(
+      this.programInfo.attribLocations.vertexColor,
       numComponents,
       type,
       normalize,
       stride,
       offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+    this.gl.enableVertexAttribArray(this.programInfo.attribLocations.vertexColor);
   }
 }

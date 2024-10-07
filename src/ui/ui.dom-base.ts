@@ -23,6 +23,7 @@ export abstract class DomBase<DOM extends HTMLElement> {
     private preInit(){
         
     }
+    protected abstract init(): void;
     private postInit(){
         this.setupCSS();
         this.div.appendChild( this.getElementFact());
@@ -33,7 +34,13 @@ export abstract class DomBase<DOM extends HTMLElement> {
         this.init();
         this.postInit();
     }
-    protected abstract init(): void;
+
+    protected abstract update(): void;
+
+    updateAll() {
+        this.update();
+    }
+
     abstract CSS(): string;
     abstract getElement(): DOM | undefined;
 }

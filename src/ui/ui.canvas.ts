@@ -1,6 +1,7 @@
 import { DomBase } from "./ui.dom-base";
 
 export class Canvas extends DomBase<HTMLCanvasElement>{
+    
     canvas?: HTMLCanvasElement;
     init(): void {
         console.log("read init of canvas")
@@ -9,6 +10,8 @@ export class Canvas extends DomBase<HTMLCanvasElement>{
         this.canvas.width = 960;
         this.canvas.height = 540;
 
+    }
+    protected update(): void {
     }
     CSS(): string {
         return "";

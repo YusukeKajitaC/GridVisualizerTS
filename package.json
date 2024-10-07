@@ -10,6 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "gridvisualizerts": "file:",
     "ts-gl-matrix": "^4.0.3",
     "typescript": "^5.6.2"
   },
