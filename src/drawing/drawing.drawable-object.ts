@@ -1,13 +1,25 @@
 import { Color } from "./drawing.color";
 import { Point } from "./drawing.point";
 
+export interface DrawElement {
+  points: Point[];
+  colors: Color[];
+}
+
 export interface Buffers {
   position: WebGLBuffer | null;
   color: WebGLBuffer | null;
   indices: WebGLBuffer | null;
 }
 
-export abstract class DrawableObject {
+/**
+ *
+ *
+ * @export
+ * @abstract
+ * @class DrawableObject
+ */
+export abstract class DrawableObjectContext {
   isVisible;
 
   colorList: Color[];
@@ -35,7 +47,7 @@ export abstract class DrawableObject {
     const pointArray = new Float32Array(
       this.pointList
         .map((point) => {
-          return [point.x, point.y,point.z];
+          return [point.x, point.y, point.z];
         })
         .flat()
     );
@@ -48,19 +60,54 @@ export abstract class DrawableObject {
     );
     const indexArray = new Uint16Array(this.indexList);
 
-    this.setupBufferToGlRender(gl,pointArray,colorArray,indexArray);
+    this.setupBufferToGlRender(gl, pointArray, colorArray, indexArray);
   }
-  setupBufferToGlRender(gl: WebGL2RenderingContext, pointArray: Float32Array, colorArray: Float32Array, indexArray: Uint16Array) {
-    
+  setupBufferToGlRender(
+    gl: WebGL2RenderingContext,
+    pointArray: Float32Array,
+    colorArray: Float32Array,
+    indexArray: Uint16Array
+  ) {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.position);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pointArray), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(pointArray),
+      gl.STATIC_DRAW
+    );
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.color);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorArray), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(colorArray),
+      gl.STATIC_DRAW
+    );
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffers.indices);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexArray), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(indexArray),
+      gl.STATIC_DRAW
+    );
+  }
+  deleteBuffers(gl: WebGL2RenderingContext) {
+    if (gl.isBuffer(this.buffers.position))
+      gl.deleteBuffer(this.buffers.position);
+    if (gl.isBuffer(this.buffers.color)) gl.deleteBuffer(this.buffers.color);
+    if (gl.isBuffer(this.buffers.indices))
+      gl.deleteBuffer(this.buffers.indices);
   }
 
   abstract init(gl: WebGL2RenderingContext): void;
   abstract update(gl: WebGL2RenderingContext): void;
-  abstract draw(gl: WebGL2RenderingContext, drawMethod: (buffers: Buffers, mode: GLenum, drawTarget: DrawableObject) => void, ): void;
+  abstract draw(
+    gl: WebGL2RenderingContext,
+    drawMethod: (
+      buffers: Buffers,
+      mode: GLenum,
+      drawTarget: DrawableObjectContext
+    ) => void
+  ): void;
+
+  abstract toJson(): Object;
+  abstract fromJson(json: Object): void;
+
+  fromJsonFile(file: File) {}
 }

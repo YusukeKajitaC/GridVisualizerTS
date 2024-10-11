@@ -1,5 +1,5 @@
 import { Mat4 } from "ts-gl-matrix";
-import { Buffers, DrawableObject } from "./drawing.drawable-object";
+import { Buffers, DrawableObjectContext } from "./drawing.drawable-object";
 
 type ProgramInfo = {
   program: WebGLProgram;
@@ -24,7 +24,7 @@ export class Diagram {
 
   programInfo: ProgramInfo;
 
-  objectList: DrawableObject[];
+  objectList: DrawableObjectContext[];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -81,11 +81,10 @@ export class Diagram {
     this.objectList = [];
   }
 
-
   init() {
     this.objectList.forEach((obj) => {
       obj.init(this.gl);
-    })
+    });
   }
 
   draw() {
@@ -142,8 +141,7 @@ export class Diagram {
     ); // amount to translate
   }
 
-
-  drawObject(buffers: Buffers, mode: GLenum, obj: DrawableObject) {
+  drawObject(buffers: Buffers, mode: GLenum, obj: DrawableObjectContext) {
     //取り出しかたの指定。
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -217,7 +215,6 @@ export class Diagram {
     );
   }
 
-  
   //#region shader init
 
   //
@@ -278,5 +275,4 @@ export class Diagram {
   }
 
   //#endregion shader init
-
 }
