@@ -5,14 +5,14 @@ import {
     GridComponentGroupData,
 } from "./core.grid-components.grid-component";
 
-export interface GeneratorData extends GridComponentData {
-    ratedPower: number;
+export interface BusBarData extends GridComponentData {
+    consumption: number;
 }
 
-export class GeneratorContext extends GridComponentContext<GeneratorData> {
+export class BusBarContext extends GridComponentContext<BusBarData> {
     update(): void {}
     constructor(
-        data: GeneratorData,
+        data: BusBarData,
         connectionList: GridComponentConnectionData[],
         groupList: GridComponentGroupData[]
     ) {
