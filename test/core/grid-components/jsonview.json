@@ -1,0 +1,91 @@
+{
+    "data": {
+        "componentDataList": [
+            {
+                "ratedPower": 100,
+                "componentId": 0,
+                "name": "GEN1",
+                "description": "test Generator 1",
+                "type": "Generator"
+            },
+            {
+                "componentId": 1,
+                "name": "CONS1",
+                "description": "test consumer 1",
+                "type": "Consumer",
+                "consumption": 100
+            }
+        ],
+        "connectionDataList": [{ "connectionId": 0, "connectionInfo": [0, 1] }],
+        "groupDataList": []
+    },
+    "context": {
+        "componentList": [
+            {
+                "data": {
+                    "ratedPower": 100,
+                    "componentId": 0,
+                    "name": "GEN1",
+                    "description": "test Generator 1",
+                    "type": "Generator"
+                },
+                "connection": {
+                    "data": {
+                        "ratedPower": 100,
+                        "componentId": 0,
+                        "name": "GEN1",
+                        "description": "test Generator 1",
+                        "type": "Generator"
+                    },
+                    "connectionList": [{ "connectionId": 0, "connectionInfo": [0, 1] }]
+                },
+                "group": {
+                    "data": {
+                        "ratedPower": 100,
+                        "componentId": 0,
+                        "name": "GEN1",
+                        "description": "test Generator 1",
+                        "type": "Generator"
+                    },
+                    "groupOf": []
+                }
+            },
+            {
+                "data": {
+                    "componentId": 1,
+                    "name": "CONS1",
+                    "description": "test consumer 1",
+                    "type": "Consumer",
+                    "consumption": 100
+                },
+                "connection": {
+                    "data": {
+                        "componentId": 1,
+                        "name": "CONS1",
+                        "description": "test consumer 1",
+                        "type": "Consumer",
+                        "consumption": 100
+                    },
+                    "connectionList": [{ "connectionId": 0, "connectionInfo": [0, 1] }]
+                },
+                "group": {
+                    "data": {
+                        "componentId": 1,
+                        "name": "CONS1",
+                        "description": "test consumer 1",
+                        "type": "Consumer",
+                        "consumption": 100
+                    },
+                    "groupOf": []
+                }
+            }
+        ],
+        "connectionList": [{ "data": { "connectionId": 0, "connectionInfo": [0, 1] } }],
+        "groupList": []
+    },
+    "idManagers": {
+        "componentIdManager": { "idSet": {}, "counter": 1 },
+        "connectionIdManager": { "idSet": {}, "counter": 0 },
+        "groupIdManager": { "idSet": {}, "counter": 0 }
+    }
+}

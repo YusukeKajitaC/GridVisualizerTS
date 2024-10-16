@@ -1,3 +1,5 @@
+import { VoltageLevel } from "./core.grid-components.unit";
+
 export type GridComponentType =
     | "Generator"
     | "Consumer"
@@ -14,8 +16,8 @@ export type GridComponentId = number;
 export type GridComponentConnectionId = number;
 export type GridComponentGroupId = number;
 
-export interface IdOwner<Id>{
-    getId():Id;
+export interface IdOwner<Id> {
+    getId(): Id;
 }
 export class IdUtility {
     static getIdFirstSecond<Id>(ids: [Id, Id]) {
@@ -31,8 +33,12 @@ export interface GridComponentData {
     type: GridComponentType;
 }
 
+export interface ElectricElementData extends GridComponentData {
+    voltageLevel: VoltageLevel;
+}
+
 // Data of Grid Component GroupInfo
-export interface GridComponentGroupData{
+export interface GridComponentGroupData {
     groupId: GridComponentGroupId;
     parentGroupId: GridComponentGroupId | null;
 
@@ -82,7 +88,9 @@ export class GridComponentGroupContext {
     }
 }
 
-export abstract class GridComponentContext<ComponentData extends GridComponentData> implements IdOwner<GridComponentId> {
+export abstract class GridComponentContext<ComponentData extends GridComponentData>
+    implements IdOwner<GridComponentId>
+{
     data: ComponentData;
 
     connection: GridComponentConnectionContext;
@@ -101,34 +109,83 @@ export abstract class GridComponentContext<ComponentData extends GridComponentDa
         return this.data.componentId;
     }
 
+    abstract getElectricElementData(): ElectricElementData | null;
+
+    electricConnectCheck<Target extends ElectricCalcElement & GridComponentData>(to: Target): boolean {
+        return this.electricConnectCheckEach(to) && this.electricConnectCheckDefault(to);
+    }
+    private electricConnectCheckDefault<Target extends ElectricCalcElement & GridComponentData>(to: Target): boolean {
+        const data: GridComponentData = this.getElectricElementData();
+        return;
+    }
+    protected abstract electricConnectCheckEach<Target extends ElectricCalcElement & GridComponentData>(
+        to: Target
+    ): boolean;
+
+    conceptualConnectCheck<Target extends ConceptualElement & GridComponentData>(to: Target): boolean {
+        return this.conceptualConnectCheckEach(to) && this.conceptualConnectCheckDefault(to);
+    }
+    private conceptualConnectCheckDefault<Target extends ConceptualElement & GridComponentData>(to: Target): boolean {
+        return true;
+    }
+    protected abstract conceptualConnectCheckEach<Target extends ConceptualElement & GridComponentData>(
+        to: Target
+    ): boolean;
+
     updateConnection(connectionList: GridComponentConnectionData[]) {
         this.connection.update(connectionList);
     }
     updateGroup(groupList: GridComponentGroupData[]) {
         this.group.update(groupList);
     }
+    dump() {
+        return JSON.stringify(this);
+    }
 
-    abstract update():void;
-
+    abstract update(): void;
 }
 
-export class GridConnectionContext implements IdOwner<GridComponentConnectionId>{
+export class GridConnectionContext implements IdOwner<GridComponentConnectionId> {
     data: GridComponentConnectionData;
     constructor(data: GridComponentConnectionData) {
         this.data = data;
     }
-    getId(){
+    getId() {
         return this.data.connectionId;
     }
 }
 
-
-export class GridGroupContext implements IdOwner<GridComponentGroupId>{
+export class GridGroupContext implements IdOwner<GridComponentGroupId> {
     data: GridComponentGroupData;
     constructor(data: GridComponentGroupData) {
         this.data = data;
     }
-    getId(){
+    getId() {
         return this.data.groupId;
     }
 }
+
+export type CalculateType = "Consumer" | "Generator" | "Any" | "Conductor";
+export interface ElectricCalcElement {
+    calculateType: CalculateType;
+    getVoltageLevel(): VoltageLevel;
+}
+
+export interface hasCapacity {
+    getCapacity(): number;
+    getVoltageLevel(): VoltageLevel;
+}
+
+export interface ConsumerAttribute extends ElectricCalcElement {
+    getConsumption(): number;
+}
+export interface GeneratorAttribute extends ElectricCalcElement {
+    getRatedPower(): number;
+}
+export interface ConductorAttribute extends ElectricCalcElement {
+    getResistance(): number;
+}
+
+export interface ConceptualElement {}
+
+export interface AnyElectricAttribute extends ConsumerAttribute, GeneratorAttribute, ConductorAttribute {}

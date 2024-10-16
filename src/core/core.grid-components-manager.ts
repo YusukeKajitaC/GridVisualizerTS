@@ -10,6 +10,7 @@ import {
     GridComponentId,
     GridConnectionContext,
     GridGroupContext,
+    IdUtility,
 } from "./core.grid-components/core.grid-components.grid-component";
 import { TransformerContext, TransformerData } from "./core.grid-components/core.grid-components.transformer";
 import { ComponentIdManager, ConnectionIdManager, GroupIdManager, IdManager } from "./core.id-manager";
@@ -71,13 +72,12 @@ export class GridComponentsManager {
         // init
         this.context = {
             componentList: [],
-            connectionList: this.data.connectionDataList.map((connectionData) => {
-                return new GridConnectionContext(connectionData);
-            }),
-            groupList: this.data.groupDataList.map((groupData) => {
-                return new GridGroupContext(groupData);
-            }),
+            connectionList: [],
+            groupList: [],
         };
+
+        this.initializeConnection();
+        this.initializeGroup();
 
         // recreate
         this.data.componentDataList.forEach((componentData) => {
@@ -88,11 +88,24 @@ export class GridComponentsManager {
         this.resetIdManagers();
     }
 
+    initializeGroup() {
+        this.context.groupList = this.data.groupDataList.map((groupData) => {
+            return new GridGroupContext(groupData);
+        })
+    }
+
+    initializeConnection() {
+        this.context.connectionList = this.data.connectionDataList.map((connectionData) => {
+            return new GridConnectionContext(connectionData);
+        });
+    }
+
     // create new one
     createComponent(componentData: GridComponentData) {
         componentData.componentId = this.idManagers.componentIdManager.getNewId();
         this.data.componentDataList.push(componentData);
         this.createComponentContextFromData(componentData);
+        return componentData.componentId;
     }
     createComponentContextFromData(componentData: GridComponentData) {
         let componentContext: GridComponentContext<any> | null = null;
@@ -127,12 +140,26 @@ export class GridComponentsManager {
         }
     }
 
-    createConnection(connectInfo: [GridComponentId, GridComponentId]) {}
+    
+    createConnection(connectInfo: [GridComponentId, GridComponentId]) {
+        const connection :GridComponentConnectionData= {
+            connectionId: this.idManagers.connectionIdManager.getNewId(),
+            connectionInfo: IdUtility.getIdFirstSecond(connectInfo)
+        } 
+        
+        this.data.connectionDataList.push(connection);
+        this.initializeContextFromData();
+        return connection.connectionId;
+    }
 
     importFromJsonString(jsonString: string) {
         this.data = JSON.parse(jsonString);
     }
     exportToJsonString() {
         return JSON.stringify(this.data);
+    }
+
+    dump() {
+        return JSON.stringify(this);
     }
 }
